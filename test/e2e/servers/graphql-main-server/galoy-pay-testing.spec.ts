@@ -2,7 +2,7 @@ import crypto from "crypto"
 
 import { yamlConfig } from "@config"
 import { ApolloClient, NormalizedCacheObject } from "@apollo/client/core"
-
+import { publishSingleCurrentPrice } from "@servers/trigger"
 import { toSats } from "@domain/bitcoin"
 
 import ME from "./queries/me.gql"
@@ -203,6 +203,8 @@ describe("galoy-pay", () => {
         query: subscriptionQuery,
         variables: input,
       })
+
+      await publishSingleCurrentPrice()
 
       const result = (await getSubscriptionNext(subscription)) as { data }
       const price_ = result.data?.price

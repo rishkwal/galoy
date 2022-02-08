@@ -28,6 +28,10 @@ import {
   PID,
   initializeTestingState,
   defaultStateConfig,
+  printChannelInfo,
+  lnd1,
+  lnd2,
+  lndOutside1,
 } from "test/helpers"
 
 let apolloClient: ApolloClient<NormalizedCacheObject>,
@@ -215,6 +219,11 @@ describe("graphql", () => {
     const mutation = LN_INVOICE_FEE_PROBE
 
     it("returns a valid fee", async () => {
+      await printChannelInfo({lnd:lnd1,name:"Lnd1"})
+      await printChannelInfo({lnd:lnd2,name:"Lnd2"})
+      await printChannelInfo({lnd:lndOutside1,name:"LndOutside1"})
+      await printChannelInfo({lnd:lndOutside2,name:"LndOutside2"})
+      
       const { request: paymentRequest } = await createInvoice({
         lnd: lndOutside2,
         tokens: 1_001,

@@ -142,6 +142,7 @@ export const openChannelTesting = async ({
 
   await updateEscrows()
   baseLogger.debug({ lndNewChannel, lndPartnerNewChannel }, "new channels")
+
   return { lndNewChannel, lndPartnerNewChannel }
 }
 
@@ -270,4 +271,13 @@ export const waitFor = async (f) => {
   let res
   while (!(res = await f())) await sleep(500)
   return res
+}
+
+export const printChannelInfo = async ({lnd, name}) => {
+  const {channels} = await getChannels({lnd})
+  var summary = `${name} stats:`
+  channels.forEach((channel)=> {
+    summary += `\n${channel.transaction_id}:active=${channel.is_active},local_balance=${channel.local_balance}`
+  })
+  console.log(summary)
 }
