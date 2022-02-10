@@ -122,6 +122,7 @@ export const intraledger = {
       memoPayer,
       shareMemoWithPayee: false,
       metadata,
+      paymentHash,
     })
   },
 }
@@ -138,6 +139,7 @@ const addIntraledgerTxTransfer = async ({
   memoPayer,
   shareMemoWithPayee,
   metadata,
+  paymentHash,
 }: SendIntraledgerTxArgs): Promise<LedgerJournal | LedgerError> => {
   const senderLiabilitiesWalletId = toLiabilitiesWalletId(senderWalletId)
   const recipientLiabilitiesWalletId = toLiabilitiesWalletId(recipientWalletId)
@@ -169,11 +171,10 @@ const addIntraledgerTxTransfer = async ({
     const savedEntry = await entry.commit()
     const journalEntry = translateToLedgerJournal(savedEntry)
 
-    const baseMetadata = metadata.hash ? { hash: metadata.hash } : {}
     journalEntry.transactionIds.map((_id) =>
       TransactionsMetadataRepository().persistnew({
         id: _id,
-        ledgerTxMetadata: baseMetadata,
+        ledgerTxMetadata: { hash: paymentHash },
       }),
     )
 
