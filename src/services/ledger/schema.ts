@@ -5,7 +5,7 @@ const Schema = mongoose.Schema
 
 const ledgerTransactionTypes = Object.values(LedgerTransactionType)
 
-const transactionSchema = new Schema({
+const transactionSchema = new Schema<TransactionRecord>({
   hash: {
     type: Schema.Types.String,
     ref: "invoiceusers",
@@ -161,7 +161,7 @@ transactionSchema.index({
 
 export const Transaction = mongoose.model("Medici_Transaction", transactionSchema)
 
-const transactionMetadataSchema = new Schema({
+const transactionMetadataSchema = new Schema<TransactionMetadataRecord>({
   hash: String,
   revealedPreImage: {
     type: String,
