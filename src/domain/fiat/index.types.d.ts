@@ -39,10 +39,10 @@ type GetAmountsSendOrReceiveArgs = {
 } & CentsXORSats
 
 type GetAmountsSendOrReceiveRet =
-  | NotReachableError
-  | NotImplementedError
   | {
       amountDisplayCurrency: DisplayCurrencyBaseAmount
       sats: Satoshis
       cents?: UsdCents
     }
+  | NotReachableError
+  | NotImplementedError
