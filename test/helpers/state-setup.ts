@@ -13,7 +13,7 @@ import {
   chunk,
   generateSatoshiPriceHistory,
   bitcoindClient,
-  createUserWallet,
+  createUserAndWallet,
   fundWalletIdFromOnchain,
   lnd1,
   lnd2,
@@ -151,7 +151,7 @@ export const initializeTestingState = async (stateConfig: TestingStateConfig) =>
 
   // Create test users and mandatory users
   await Promise.all(
-    stateConfig.userAccounts.map((accountEntry) => createUserWallet(accountEntry)),
+    stateConfig.userAccounts.map((accountEntry) => createUserAndWallet(accountEntry)),
   )
 
   // Fund special wallets

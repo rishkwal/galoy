@@ -2,10 +2,10 @@ import { NotImplementedError, NotReachableError } from "@domain/errors"
 import { WalletCurrency } from "@domain/wallets"
 
 export const AmountConverter = ({
-  displayPriceFns,
+  dCConverter,
   dealerFns,
 }: {
-  displayPriceFns: DisplayCurrencyConversionRate
+  dCConverter: DisplayCurrencyConverter
   dealerFns: DealerFns
 }) => {
   const getAmountsReceive = async ({
@@ -19,7 +19,7 @@ export const AmountConverter = ({
         return new NotImplementedError("receive/quote/sats/btc")
       }
 
-      const amountDisplayCurrency = displayPriceFns.fromSats(sats)
+      const amountDisplayCurrency = dCConverter.fromSats(sats)
       if (walletCurrency === WalletCurrency.Btc) {
         return {
           sats,
@@ -46,7 +46,7 @@ export const AmountConverter = ({
           "unsupposed use cas: walletCurrency = Btc, receive from cents",
         )
       } else {
-        const amountDisplayCurrency = displayPriceFns.fromCents(cents)
+        const amountDisplayCurrency = dCConverter.fromCents(cents)
         const sats = await dealerFns.getBuyUsdQuoteFromCents(cents)
         return {
           sats,
@@ -71,7 +71,7 @@ export const AmountConverter = ({
     }
 
     if (sats !== undefined) {
-      const amountDisplayCurrency = displayPriceFns.fromSats(sats)
+      const amountDisplayCurrency = dCConverter.fromSats(sats)
       if (walletCurrency === WalletCurrency.Btc) {
         return {
           sats,
@@ -94,7 +94,7 @@ export const AmountConverter = ({
           "unsupposed use cas: walletCurrency = Btc, send with cents",
         )
       } else {
-        const amountDisplayCurrency = displayPriceFns.fromCents(cents)
+        const amountDisplayCurrency = dCConverter.fromCents(cents)
         const sats = await dealerFns.sellUsdImmediate(cents)
         return {
           sats,

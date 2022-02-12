@@ -3,18 +3,15 @@ import { toCents } from "@domain/fiat"
 import { AmountConverter, WalletCurrency } from "@domain/wallets"
 import { Dealer } from "@services/dealer"
 
+import { dCConverter } from "test/unit/helpers"
+
 const dealerFns = Dealer()
 
 describe("AmountConverter", () => {
-  const displayPriceFns = {
-    fromSats: (amount: Satoshis) => Number(amount * 2) as DisplayCurrencyBaseAmount,
-    fromCents: (amount: UsdCents) => Number(amount * 20) as DisplayCurrencyBaseAmount,
-  }
-
   describe("getAmountsReceive", () => {
     it("BTC wallet receives BTC", async () => {
       const converter = AmountConverter({
-        displayPriceFns,
+        dCConverter,
         dealerFns,
       })
       const walletCurrency = WalletCurrency.Btc
@@ -35,7 +32,7 @@ describe("AmountConverter", () => {
 
     it("USD wallet receives BTC from sats amount (ie: tipping page, or amountless invoice)", async () => {
       const converter = AmountConverter({
-        displayPriceFns,
+        dCConverter,
         dealerFns,
       })
       const walletCurrency = WalletCurrency.Usd
@@ -56,7 +53,7 @@ describe("AmountConverter", () => {
 
     it("USD wallet receives BTC from cents amount (prepaid usd option)", async () => {
       const converter = AmountConverter({
-        displayPriceFns,
+        dCConverter,
         dealerFns,
       })
       const walletCurrency = WalletCurrency.Usd
@@ -79,7 +76,7 @@ describe("AmountConverter", () => {
   describe("getAmountsSend", () => {
     it("BTC wallet sends BTC", async () => {
       const converter = AmountConverter({
-        displayPriceFns,
+        dCConverter,
         dealerFns,
       })
       const walletCurrency = WalletCurrency.Btc
@@ -99,7 +96,7 @@ describe("AmountConverter", () => {
     })
     it("USD wallet sends BTC from sats amount (ie: scan invoice with amount)", async () => {
       const converter = AmountConverter({
-        displayPriceFns,
+        dCConverter,
         dealerFns,
       })
       const walletCurrency = WalletCurrency.Usd
@@ -119,7 +116,7 @@ describe("AmountConverter", () => {
     })
     it("USD wallet sends BTC from usd amount (ie: scan amountless invoice)", async () => {
       const converter = AmountConverter({
-        displayPriceFns,
+        dCConverter,
         dealerFns,
       })
       const walletCurrency = WalletCurrency.Usd
