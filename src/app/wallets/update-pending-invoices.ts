@@ -39,7 +39,7 @@ export const updatePendingInvoices = async (logger: Logger): Promise<void> => {
   logger.info("finish updating pending invoices")
 }
 
-export const updatePendingInvoicesByWalletId = async ({
+const updatePendingInvoicesByWalletId = async ({
   walletId,
   logger,
   lock,
@@ -91,7 +91,14 @@ const updatePendingInvoice = async ({
 
   const walletInvoicesRepo = WalletInvoicesRepository()
 
-  const { pubkey, paymentHash, walletId, currency: walletCurrency, cents } = walletInvoice
+  const {
+    pubkey,
+    paymentHash,
+    walletId,
+    currency: walletCurrency,
+    cents,
+    secret,
+  } = walletInvoice
   const lnInvoiceLookup = await lndService.lookupInvoice({ pubkey, paymentHash })
   if (lnInvoiceLookup instanceof InvoiceNotFoundError) {
     const isDeleted = await walletInvoicesRepo.deleteByPaymentHash(paymentHash)
@@ -125,6 +132,11 @@ const updatePendingInvoice = async ({
     return true
   }
 
+  if (!lnInvoiceLookup.isHeld) {
+    pendingInvoiceLogger.info("invoice is not been held")
+    return false
+  }
+
   const lockService = LockService()
   return lockService.lockPaymentHash({ paymentHash, logger, lock }, async () => {
     // we're getting the invoice another time, now behind the lock, to avoid potential race condition
@@ -134,10 +146,14 @@ const updatePendingInvoice = async ({
       return false
     }
     if (invoiceToUpdate instanceof Error) return invoiceToUpdate
-    if (invoiceToUpdate.paid) {
+
+    if (walletInvoice.paid) {
       pendingInvoiceLogger.info("invoice has already been processed")
       return true
     }
+
+    const invoiceSettled = await lndService.settleInvoice({ pubkey, secret })
+    if (invoiceSettled instanceof Error) return invoiceSettled
 
     const invoicePaid = await walletInvoicesRepo.markAsPaid(paymentHash)
     if (invoicePaid instanceof Error) return invoicePaid

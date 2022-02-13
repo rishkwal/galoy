@@ -22,8 +22,9 @@ beforeAll(async () => {
 
 const createTestWalletInvoice = () => {
   const randomPaymentHash = crypto.randomBytes(32).toString("hex") as PaymentHash
-  return {
+  const walletInvoice: WalletInvoice = {
     paymentHash: randomPaymentHash,
+    secret: "secret" as SecretPreImage,
     walletId: crypto.randomUUID() as WalletId,
     selfGenerated: false,
     pubkey: "pubkey" as Pubkey,
@@ -31,6 +32,7 @@ const createTestWalletInvoice = () => {
     cents: toCents(10),
     currency: WalletCurrency.Btc,
   }
+  return walletInvoice
 }
 
 describe("WalletInvoices", () => {

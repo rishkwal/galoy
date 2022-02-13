@@ -18,7 +18,7 @@ import {
 } from "@domain/bitcoin/lightning"
 import lnService from "ln-service"
 import {
-  createInvoice,
+  createHodlInvoice,
   getInvoice,
   getPayment,
   cancelHodlInvoice,
@@ -30,6 +30,7 @@ import {
   PayViaPaymentDetailsResult,
   GetInvoiceResult,
   getPayments,
+  settleHodlInvoice,
   getFailedPayments,
 } from "lightning"
 
@@ -164,6 +165,7 @@ export const LndService = (): ILightningService | LightningServiceError => {
     description,
     descriptionHash,
     expiresAt,
+    paymentHash,
   }: RegisterInvoiceArgs): Promise<RegisteredInvoice | LightningServiceError> => {
     const input = {
       lnd: defaultLnd,
@@ -171,10 +173,11 @@ export const LndService = (): ILightningService | LightningServiceError => {
       description_hash: descriptionHash,
       tokens: sats as number,
       expires_at: expiresAt.toISOString(),
+      paymentHash,
     }
 
     try {
-      const result = await createInvoice(input)
+      const result = await createHodlInvoice(input)
       const request = result.request as EncodedPaymentRequest
       const returnedInvoice = decodeInvoice(request)
       if (returnedInvoice instanceof Error) {
@@ -212,6 +215,7 @@ export const LndService = (): ILightningService | LightningServiceError => {
         createdAt: new Date(invoice.created_at),
         confirmedAt: invoice.confirmed_at ? new Date(invoice.confirmed_at) : undefined,
         isSettled: !!invoice.is_confirmed,
+        isHeld: !!invoice.is_held,
         roundedDownReceived: toSats(invoice.received),
         milliSatsReceived: toMilliSatsFromString(invoice.received_mtokens),
         secretPreImage: invoice.secret as SecretPreImage,
@@ -336,6 +340,23 @@ export const LndService = (): ILightningService | LightningServiceError => {
     return {
       lnPayments: lnPayments.filter((p) => p.status !== PaymentStatus.Settled),
       endCursor,
+    }
+  }
+
+  const settleInvoice = async ({
+    pubkey,
+    secret,
+  }: {
+    pubkey: Pubkey
+    secret: SecretPreImage
+  }): Promise<true | LightningServiceError> => {
+    try {
+      const { lnd } = getLndFromPubkey({ pubkey })
+      // Use the secret to claim the funds
+      await settleHodlInvoice({ lnd, secret })
+      return true
+    } catch (err) {
+      return new UnknownLightningServiceError(err)
     }
   }
 
@@ -483,6 +504,7 @@ export const LndService = (): ILightningService | LightningServiceError => {
     lookupInvoice,
     lookupPayment,
     listSettledPayments,
+    settleInvoice,
     listPendingPayments,
     listFailedPayments,
     listSettledAndPendingPayments,

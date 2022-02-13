@@ -10,6 +10,7 @@ import { WalletInvoice } from "./schema"
 export const WalletInvoicesRepository = (): IWalletInvoicesRepository => {
   const persistNew = async ({
     paymentHash,
+    secret,
     walletId,
     selfGenerated,
     pubkey,
@@ -20,6 +21,7 @@ export const WalletInvoicesRepository = (): IWalletInvoicesRepository => {
     try {
       const walletInvoice = await new WalletInvoice({
         _id: paymentHash,
+        secret,
         walletId,
         selfGenerated,
         pubkey,
@@ -146,6 +148,7 @@ export const WalletInvoicesRepository = (): IWalletInvoicesRepository => {
 
 const walletInvoiceFromRaw = (result): WalletInvoice => ({
   paymentHash: result.id as PaymentHash,
+  secret: result.secret as SecretPreImage,
   walletId: result.walletId as WalletId,
   selfGenerated: result.selfGenerated,
   pubkey: result.pubkey as Pubkey,
