@@ -1,3 +1,14 @@
+/**
+ * how to run:
+ *	. ./.envrc && yarn ts-node \
+ *		--files \
+ *			-r tsconfig-paths/register \
+ *			-r src/services/tracing.ts \
+ *		src/debug/migrate-ln-payments-trackpaymentsv2.ts
+ */
+
+import { isUp } from "@services/lnd/health"
+import { params as unauthParams } from "@services/lnd/unauth"
 import { PaymentNotFoundError, PaymentStatus } from "@domain/bitcoin/lightning"
 import { CouldNotFindError } from "@domain/errors"
 import { LedgerService } from "@services/ledger"
@@ -10,10 +21,11 @@ import {
   asyncRunInSpan,
   SemanticAttributes,
 } from "@services/tracing"
+import { setupMongoConnection } from "@services/mongodb"
 
 let lndService
 
-export const migrateLnPaymentsFromLndByHash = async (): Promise<true> =>
+export const main = async (): Promise<true> =>
   asyncRunInSpan(
     "debug.migrateLnPaymentsFromLndByHash",
     { [SemanticAttributes.CODE_FUNCTION]: "debug.migrateLnPaymentsFromLndByHash" },
@@ -116,3 +128,11 @@ const migrateLnPayment = async (
       return true
     },
   )
+
+setupMongoConnection(false)
+  .then(async (mongoose) => {
+    await Promise.all(unauthParams.map((lndParams) => isUp(lndParams)))
+    await main()
+    if (mongoose) await mongoose.connection.close()
+  })
+  .catch((err) => console.log(err))
